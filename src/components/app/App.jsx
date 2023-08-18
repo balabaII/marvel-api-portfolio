@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { Component, useState } from "react";
 
 import AppHeader from "../appHeader/AppHeader";
 import RandomChar from "../randomChar/RandomChar";
@@ -8,34 +8,30 @@ import ErrorBoundary from "../errorBoundary/ErrorBoundary";
 
 import decoration from '../../resources/img/vision.png';
 
-class App extends Component{
-    state = {
-        selectedHero : null,
+const App = () =>{
+    const [selectedHero, setSelectedHero] = useState(null)
+
+
+    const onHeroSelected = (id) =>{
+        setSelectedHero( id )
     };
 
-    onHeroSelected = (id) =>{
-        this.setState( {selectedHero : id });
-    };
-
-    render(){
-        const id = this.state.selectedHero;
-        return (
-            <div className="app">
-                <AppHeader/>
-                <main>
-                    <RandomChar/>
-                    <div className="char__content">
-                        <CharList onHeroSelected = {this.onHeroSelected}/>
-                        <ErrorBoundary>
-                            <CharInfo heroId = {id}/>
-                        </ErrorBoundary>
-                    </div>
-                    <img className="bg-decoration" src={decoration} alt="vision"/>
-                </main>
-            </div>
-        );//return
-    };//render
+    return (
+        <div className="app">
+            <AppHeader/>
+            <main>
+                <RandomChar/>
+                <div className="char__content">
+                    <CharList onHeroSelected = {onHeroSelected}/>
+                    <ErrorBoundary>
+                        <CharInfo heroId = {selectedHero}/>
+                    </ErrorBoundary>
+                </div>
+                <img className="bg-decoration" src={decoration} alt="vision"/>
+            </main>
+        </div>
+    );
     
-};//class
+};
 
 export default App;

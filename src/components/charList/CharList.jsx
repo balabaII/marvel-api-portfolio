@@ -1,4 +1,4 @@
-import { Component, createRef} from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import MarvelService from '../../services/MarvelService';
 
@@ -7,33 +7,26 @@ import './charList.scss';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 
-class CharList extends Component{
-    constructor(props){
-        super(props);
-    };
+const CharList = (props) =>{
 
-
-    state = {
-        characters : [],
-        loading : true,
-        error : false,
-        addHeroesLoading: false,
-        offset : 210,
-        limit: false,
-    };
-
-    marvelService = new MarvelService();
-
-
-
-    refList = [];
+    const [characters, setCharacters] = useState([]),
+        [loading, setLoading] = useState(true),
+        [error, setError] = useState(false),
+        [addHeroesLoading, setAddHeroesLoading] =  useState(false),
+        [limit, setLimit] = useState(false),
+        [offset, setOffset] = useState(210);
     
-    setRefs = item => {
-        this.refList.push( item );
-    };
 
-    onFocus = (item) =>{
-        this.refList.forEach( ref => {
+    const marvelService = new MarvelService();
+
+
+
+    const refList = useRef([]);
+    
+
+
+    const onFocus = (item) =>{
+        refList.current.forEach( ref => {
             ref.classList.remove('char__item_selected');
             if( item === ref) ref.classList.add('char__item_selected');
         });
@@ -41,90 +34,71 @@ class CharList extends Component{
 
 
 
+    useEffect( () => {
+        addHeroes();
+    }, [] ); 
 
 
 
-    componentDidMount(){
-        this.addHeroes(); 
+    const addHeroes = (offset) =>{
+        setAddHeroesLoading(true)
+        marvelService.getAllCharacters(offset)
+            .then( onHeroesLoaded )
+            .catch(onError);
+    };
+
+    const onHeroesLoaded = (newCharacters) =>{
+        setCharacters(characters => [...characters, ...newCharacters]);
+        setLoading(false);
+        setError(false);
+        setAddHeroesLoading(false);
+        setOffset(offset => offset + 9);
+        setLimit( newCharacters.length !== 9);
+    };
+
+    const onError = () =>{
+        setError( true );
+        setLoading( false );
     };
 
 
-    addHeroes = (offset) =>{
-        this.addHeroesLoading();
-        this.marvelService
-            .getAllCharacters(offset)
-            .then( this.onHeroesLoaded )
-            .catch(this.onError);
-    };
- 
-    addHeroesLoading = () => {
-        this.setState( {addHeroesLoading : true} );
-    };
+    const characterList = characters.map(( {name, thumbnail, id}, index) => <ListItem 
+                                                                    onHeroSelected = {props.onHeroSelected}
+                                                                    toRef = {refList}
+                                                                    index = {index}
+                                                                    onFocus = {onFocus}
+                                                                    name={name}  thumbnail={thumbnail} id={id} key={id} />),
+        errorMessage = error ? <ErrorMessage/> : null,
+        spinner = loading ? <Spinner/> : null,
+        content = !(loading || error) ? <ul className="char__grid">{characterList}</ul>  : null ;
 
-    onHeroesLoaded = (newCharacters) =>{
-        this.setState( ({characters, offset}) => ({ 
-            characters :[...characters , ...newCharacters], 
-            loading : false, 
-            error: false, 
-            addHeroesLoading : false,
-            offset : offset + 9,
-            limit : newCharacters.length !== 9,
-        }));
-    };
-
-    onError = () =>{
-        this.setState( { loading : false  , error: true });
-    };
-
-
-
-
-    render(){
-        const {characters, loading, error, addHeroesLoading, offset, limit} = this.state,
-            characterList = characters.map(( {name, thumbnail, id}, index) => <View 
-                                                                        onHeroSelected = {this.props.onHeroSelected}
-                                                                        toRef = {this.setRefs}
-                                                                        onFocus = {this.onFocus}
-                                                                        name={name}  thumbnail={thumbnail} id={id} key={id} />),
-            errorMessage = error ? <ErrorMessage/> : null,
-            spinner = loading ? <Spinner/> : null,
-            content = !(loading || error) ? <ul className="char__grid">{characterList}</ul>  : null ;
-
-        return (
-            <div className="char__list">
-                {spinner || errorMessage || content}
-                <button className="button button__main button__long"
-                        disabled={addHeroesLoading}
-                        onClick={() => this.addHeroes(offset)}
-                        style={ limit ? { display : "none" } : null }>
-                    <div className="inner">load more</div>
-                </button>
-            </div>
-        );//return
-    };//render
+    return (
+        <div className="char__list">
+            {spinner || errorMessage || content}
+            <button className="button button__main button__long"
+                    disabled={addHeroesLoading}
+                    onClick={() => addHeroes(offset)}
+                    style={ limit ? { display : "none" } : null }>
+                <div className="inner">load more</div>
+            </button>
+        </div>
+    );//return
 };//class
 
 
 
-class View extends Component{ 
-    constructor(props){
-        super(props);
-    };
-
-
-    render(){
-        const {name, thumbnail, onHeroSelected, onFocus, id, toRef} = this.props
-        const imgStyle = thumbnail.indexOf('image_not_available.jpg') !==  -1 ? { objectFit: 'fill'} : null;
-        return (
-            <li className="char__item" tabIndex="0"
-                                ref = {toRef}  
-                                onClick={() => onHeroSelected(id)}
-                                onFocus={(event) => onFocus(event.target)}>
-                <img style={ imgStyle } src={thumbnail} alt="abyss"/>
-                <div className="char__name">{name}</div>
-            </li>
-        );
-    };
+const ListItem = (props) => {  
+    const {name, thumbnail, onHeroSelected, onFocus, id, toRef, index} = props
+    const imgStyle = thumbnail.indexOf('image_not_available.jpg') !==  -1 ? { objectFit: 'fill'} : null;
+    return (
+        <li className="char__item" tabIndex="0"
+                            ref = {e => toRef.current[index] = e}  
+                            onClick={() => onHeroSelected(id)}
+                            onFocus={(event) => onFocus(event.target)}>
+            <img style={ imgStyle } src={thumbnail} alt="abyss"/>
+            <div className="char__name">{name}</div>
+        </li>
+    );
    
 };
 
