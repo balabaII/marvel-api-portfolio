@@ -1,6 +1,6 @@
 import { Component, useState, useEffect} from 'react';
 
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 
@@ -9,12 +9,8 @@ import mjolnir from '../../resources/img/mjolnir.png'
 
 
 const RandomChar = () =>{
-
-    const [character, setCharacter] = useState(),
-        [loading, setLoading] = useState(true),
-        [error, setError] = useState(false);
-
-    const marvelService = new MarvelService();
+    const [character, setCharacter] = useState({});
+    const {loading, error, clearError, getCharacter} = useMarvelService();
 
 
     useEffect( ()=> {
@@ -22,26 +18,16 @@ const RandomChar = () =>{
     },[]);
 
 
-
     const onHeroLoaded = (character) =>{
         setCharacter(character);
-        setLoading(false);
-        setError(false);
+        clearError();
     };
 
-    const onError = () =>{
-        setError(true);
-        setLoading(false);
-    };
-
-    const updateHero = async () =>{
-        setLoading(true);
-
+    const updateHero = () =>{
         const id = Math.floor( Math.random() * (1011400 - 1011000) + 1011000);
-        marvelService.getCharacter(id)
-                        .then( res => onHeroLoaded(res) )
-                        .catch( onError );
-    }
+        getCharacter(id)
+            .then( onHeroLoaded );
+    };
 
     
 
@@ -67,15 +53,15 @@ const RandomChar = () =>{
                 <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/> 
             </div>
         </div>
-    )//return 
+    );//return 
     
-}//class
+};//RandomChar
 
 
-const View = ({char}) =>{
-    let {name, description, thumbnail, homepage, wiki} = char,
-        imgStyle =  thumbnail.indexOf('image_not_available.jpg') !==  -1 ? { objectFit: 'fill'} : null;
-    
+const View = ( {char} ) => {
+    let { name, description, thumbnail, homepage, wiki} = char;
+    let imgStyle;
+    if( thumbnail ) imgStyle =  thumbnail.indexOf('image_not_available.jpg') !==  -1 ? { objectFit: 'fill'} : null;
     if( !description ) description = "Sorry, seems like there was not any description for that character";
 
     return (
@@ -96,7 +82,7 @@ const View = ({char}) =>{
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default RandomChar;

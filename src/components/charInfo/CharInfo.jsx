@@ -1,5 +1,5 @@
-import { Component, useState, useEffect} from 'react';
-import MarvelService from '../../services/MarvelService';
+import { useState, useEffect } from 'react';
+import useMarvelService from '../../services/MarvelService';
 
 import './charInfo.scss';
 
@@ -8,35 +8,18 @@ import ErrorMessage from '../errorMessage/ErrorMessage';
 import Skeleton from '../skeleton/Skeleton'
 
 const CharInfo = (props) =>{
-    const [character, setCharacter] = useState(null),
-        [loading, setLoading] = useState(false),
-        [error, setError] = useState(false);
-
-    const marvelService = new MarvelService();
+    const [character, setCharacter] = useState(null);
+    const {loading, error, clearError, getCharacter} = useMarvelService();
 
     useEffect( () =>  updateHero() , [] );
-    useEffect( () => updateHero() , [props.heroId] );
+    useEffect( () =>  updateHero() , [props.heroId] );
 
-    // componentDidMount(){
-    //     this.updateHero();
-    // };
 
-    // componentDidUpdate(prevProps, prevState){
-    //     if ( this.props.heroId !== prevProps.heroId){
-    //         this.updateHero()
-    //     }
-    // };
 
 
     const onHeroLoaded = (character) => {
         setCharacter( character );
-        setLoading( false );
-        setError( false );
-    };
-
-    const onError = () =>{
-        setError( true );
-        setLoading( false );
+        clearError();
     };
 
     const updateHero = () =>{
@@ -45,10 +28,9 @@ const CharInfo = (props) =>{
             return;
         };
 
-        setLoading( true );
-        marvelService.getCharacter( heroId )
+
+        getCharacter( heroId )
             .then( onHeroLoaded)
-            .catch( onError );
     };
 
   

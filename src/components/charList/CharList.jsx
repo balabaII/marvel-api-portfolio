@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 
 import './charList.scss';
 
@@ -10,21 +10,13 @@ import ErrorMessage from '../errorMessage/ErrorMessage';
 const CharList = (props) =>{
 
     const [characters, setCharacters] = useState([]),
-        [loading, setLoading] = useState(true),
-        [error, setError] = useState(false),
         [addHeroesLoading, setAddHeroesLoading] =  useState(false),
         [limit, setLimit] = useState(false),
         [offset, setOffset] = useState(210);
     
-
-    const marvelService = new MarvelService();
-
-
+     const {loading, error, clearError, getAllCharacters} = useMarvelService();
 
     const refList = useRef([]);
-    
-
-
     const onFocus = (item) =>{
         refList.current.forEach( ref => {
             ref.classList.remove('char__item_selected');
@@ -35,30 +27,23 @@ const CharList = (props) =>{
 
 
     useEffect( () => {
-        addHeroes();
+        addHeroes(offset, true);
     }, [] ); 
 
 
 
-    const addHeroes = (offset) =>{
-        setAddHeroesLoading(true)
-        marvelService.getAllCharacters(offset)
+    const addHeroes = (offset, initial) =>{
+        initial ? setAddHeroesLoading(false) : setAddHeroesLoading(true);
+        getAllCharacters(offset)
             .then( onHeroesLoaded )
-            .catch(onError);
     };
 
     const onHeroesLoaded = (newCharacters) =>{
         setCharacters(characters => [...characters, ...newCharacters]);
-        setLoading(false);
-        setError(false);
         setAddHeroesLoading(false);
         setOffset(offset => offset + 9);
         setLimit( newCharacters.length !== 9);
-    };
-
-    const onError = () =>{
-        setError( true );
-        setLoading( false );
+        clearError();
     };
 
 
@@ -69,12 +54,12 @@ const CharList = (props) =>{
                                                                     onFocus = {onFocus}
                                                                     name={name}  thumbnail={thumbnail} id={id} key={id} />),
         errorMessage = error ? <ErrorMessage/> : null,
-        spinner = loading ? <Spinner/> : null,
-        content = !(loading || error) ? <ul className="char__grid">{characterList}</ul>  : null ;
+        spinner = loading && !addHeroesLoading ? <Spinner/> : null;
 
     return (
         <div className="char__list">
-            {spinner || errorMessage || content}
+            {spinner || errorMessage }
+            <ul className="char__grid">{characterList}</ul>
             <button className="button button__main button__long"
                     disabled={addHeroesLoading}
                     onClick={() => addHeroes(offset)}

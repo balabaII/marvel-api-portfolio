@@ -20,9 +20,13 @@ const App = () =>{
         <div className="app">
             <AppHeader/>
             <main>
-                <RandomChar/>
+                <ErrorBoundary>
+                    <RandomChar/>
+                </ErrorBoundary>
                 <div className="char__content">
-                    <CharList onHeroSelected = {onHeroSelected}/>
+                    <ErrorBoundary>
+                        <CharList onHeroSelected = {onHeroSelected}/>
+                    </ErrorBoundary>
                     <ErrorBoundary>
                         <CharInfo heroId = {selectedHero}/>
                     </ErrorBoundary>
