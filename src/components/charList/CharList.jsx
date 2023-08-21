@@ -47,19 +47,20 @@ const CharList = (props) =>{
     };
 
 
-    const characterList = characters.map(( {name, thumbnail, id}, index) => <ListItem 
+
+
+    const  errorMessage = error ? <ErrorMessage/> : null,
+        spinner = loading  ? <Spinner/> : null,
+        characterList = characters.map(( {name, thumbnail, id}, index) => <ListItem 
                                                                     onHeroSelected = {props.onHeroSelected}
                                                                     toRef = {refList}
                                                                     index = {index}
                                                                     onFocus = {onFocus}
-                                                                    name={name}  thumbnail={thumbnail} id={id} key={id} />),
-        errorMessage = error ? <ErrorMessage/> : null,
-        spinner = loading && !addHeroesLoading ? <Spinner/> : null;
-
+                                                                    name={name}  thumbnail={thumbnail} id={id} key={id} />);
     return (
         <div className="char__list">
-            {spinner || errorMessage }
             <ul className="char__grid">{characterList}</ul>
+            {spinner || errorMessage }
             <button className="button button__main button__long"
                     disabled={addHeroesLoading}
                     onClick={() => addHeroes(offset)}
