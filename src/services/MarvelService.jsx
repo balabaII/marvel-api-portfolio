@@ -5,7 +5,7 @@ const useMarvelService = () => {
         _apiBase = 'https://gateway.marvel.com:443/v1/public/',
         _apiKey = 'apikey=9f2034a6209467732ba4896dbfad3a89',
         _baseCharacterOffset = 210,
-        _baseComicsOffset = 300;
+        _baseComicsOffset = 500;
 
     const getAllCharacters = async (offset = _baseCharacterOffset) =>{
         const result = await request(`${_apiBase}characters?limit=9&offset=${offset}&${_apiKey}`);
@@ -17,14 +17,15 @@ const useMarvelService = () => {
         return _transformDataCharacter( result.data.results[0] );
     };
 
+   
     const getAllComics = async ( offset = _baseComicsOffset ) =>{
         const result = await request(`${_apiBase}comics?limit=8&offset=${offset}&${_apiKey}`);
         return result.data.results.map( _transformDataComics );
     };
 
-    const getComics = async(id) =>{
+    const getComic = async(id) =>{
         const result = await request(`${_apiBase}comics/${id}?${_apiKey}`);
-        return _transformDataComics( result.data.result[0] );
+        return _transformDataComics( result.data.results[0] );
     }
 
 
@@ -33,10 +34,12 @@ const useMarvelService = () => {
     const _transformDataComics = (comics) => {
         return {
             title : comics.title,
-            description : comics.description,
-            price : comics.prices[0].price,
+            description : comics.description || "There's no description",
+            price : comics.prices[0].price ? `${comics.prices[0].price}$` : 'not available',
             id: comics.id,
             thumbnail : `${comics.thumbnail.path}.${comics.thumbnail.extension}`,
+            pageCount : comics.pageCount,
+            language : comics.textObjects.language || 'en-us',
         }
     }
 
@@ -52,7 +55,7 @@ const useMarvelService = () => {
         };
     };
 
-    return { loading, error, clearError, getCharacter, getAllCharacters, getComics, getAllComics,  };
+    return { loading, error, clearError, getCharacter, getAllCharacters, getComic, getAllComics,  };
 };
 
 
