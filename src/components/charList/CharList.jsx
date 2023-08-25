@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import useMarvelService from '../../services/MarvelService';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import './charList.scss';
+import useMarvelService from '../../services/MarvelService';
 
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
+
+import './charList.scss';
 
 const CharList = (props) =>{
 
@@ -50,16 +52,28 @@ const CharList = (props) =>{
 
 
     const  errorMessage = error ? <ErrorMessage/> : null,
-        spinner = loading  ? <Spinner/> : null,
-        characterList = characters.map(( {name, thumbnail, id}, index) => <ListItem 
-                                                                    onHeroSelected = {props.onHeroSelected}
-                                                                    toRef = {refList}
-                                                                    index = {index}
-                                                                    onFocus = {onFocus}
-                                                                    name={name}  thumbnail={thumbnail} id={id} key={id} />);
+        spinner = loading  ? <Spinner/> : null;
+
+    const characterList = characters.map( ( {name, thumbnail, id}, index ) => {
+                        return (
+                            <CSSTransition in={true} key={id} classNames='char__item' timeout={500}>
+                                <ListItem 
+                                    onHeroSelected = {props.onHeroSelected}
+                                    toRef = {refList}
+                                    index = {index}
+                                    onFocus = {onFocus}
+                                    name={name}  thumbnail={thumbnail} id={id} />
+                            </CSSTransition>
+                        )});
+
+
     return (
         <div className="char__list">
-            <ul className="char__grid">{characterList}</ul>
+            <ul className="char__grid">
+                <TransitionGroup component={null}>
+                    {characterList}
+                </TransitionGroup>
+            </ul>
             {spinner || errorMessage }
             <button className="button button__main button__long"
                     disabled={addHeroesLoading}
