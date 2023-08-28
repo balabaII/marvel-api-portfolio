@@ -19,20 +19,17 @@ const CharList = (props) =>{
      const {loading, error, clearError, getAllCharacters} = useMarvelService();
 
     const refList = useRef([]);
-    const onFocus = (item) =>{
-        refList.current.forEach( ref => {
-            ref.classList.remove('char__item_selected');
-            if( item === ref) ref.classList.add('char__item_selected');
-        });
-    };
 
+    const onFocus = (index) =>{
+        refList.current.forEach( ref => ref.classList.remove('char__item_selected') );
+        refList.current[index].classList.add('char__item_selected');
+        refList.current[index].focus();
+    };
 
 
     useEffect( () => {
         addHeroes(offset, true);
     }, [] ); 
-
-
 
     const addHeroes = (offset, initial) =>{
         initial ? setAddHeroesLoading(false) : setAddHeroesLoading(true);
@@ -40,7 +37,7 @@ const CharList = (props) =>{
             .then( onHeroesLoaded )
     };
 
-    const onHeroesLoaded = (newCharacters) =>{
+    const onHeroesLoaded = async (newCharacters) =>{
         setCharacters(characters => [...characters, ...newCharacters]);
         setAddHeroesLoading(false);
         setOffset(offset => offset + 9);
@@ -53,18 +50,16 @@ const CharList = (props) =>{
 
     const  errorMessage = error ? <ErrorMessage/> : null,
         spinner = loading  ? <Spinner/> : null;
-
-    const characterList = characters.map( ( {name, thumbnail, id}, index ) => {
+    const characterList = characters ? characters.map( ( {name, thumbnail, id}, index ) => {
                         return (
                             <CSSTransition in={true} key={id} classNames='char__item' timeout={500}>
                                 <ListItem 
                                     onHeroSelected = {props.onHeroSelected}
-                                    toRef = {refList}
-                                    index = {index}
                                     onFocus = {onFocus}
+                                    refList = {refList} index = {index}
                                     name={name}  thumbnail={thumbnail} id={id} />
                             </CSSTransition>
-                        )});
+                        )}) : null ;
 
 
     return (
@@ -87,14 +82,16 @@ const CharList = (props) =>{
 
 
 
+
 const ListItem = (props) => {  
-    const {name, thumbnail, onHeroSelected, onFocus, id, toRef, index} = props
+    const {name, thumbnail, onHeroSelected, onFocus, id, refList, index} = props
     const imgStyle = thumbnail.indexOf('image_not_available.jpg') !==  -1 ? { objectFit: 'fill'} : null;
+
     return (
         <li className="char__item" tabIndex="0"
-                            ref = {e => toRef.current[index] = e}  
+                            ref = {e => refList.current[index] = e}  
                             onClick={() => onHeroSelected(id)}
-                            onFocus={(event) => onFocus(event.target)}>
+                            onFocus={() => onFocus(index)}>
             <img style={ imgStyle } src={thumbnail} alt="abyss"/>
             <div className="char__name">{name}</div>
         </li>

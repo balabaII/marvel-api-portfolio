@@ -6,7 +6,7 @@ const Page404 = () =>{
         <div>
             <ErrorMessage/>
             <p> The page doesn't exist</p>
-            <Link to='/'>Back to Main Page</Link>
+            <Link to='/characters'>Back to Main Page</Link>
         </div>
     );
 };

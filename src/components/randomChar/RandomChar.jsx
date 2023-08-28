@@ -35,7 +35,6 @@ const RandomChar = () =>{
     const errorMessage = error ? <ErrorMessage/> : null,
         spinner = loading ? <Spinner/> : null, 
         content = !(loading || error) ? <View char = {character}/> : null;
-    
     return (
         <div className="randomchar">
             {spinner || errorMessage || content}
