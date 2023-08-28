@@ -1,8 +1,7 @@
-import { Component, useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 
-import useMarvelService from '../../services/MarvelService';
-import Spinner from '../spinner/Spinner';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+import useMarvelService from '../../hooks/MarvelService';
+import setContent from '../../utils/setContent';
 
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png'
@@ -10,7 +9,7 @@ import mjolnir from '../../resources/img/mjolnir.png'
 
 const RandomChar = () =>{
     const [character, setCharacter] = useState({});
-    const {loading, error, clearError, getCharacter} = useMarvelService();
+    const {process, setProcess, clearError, getCharacter} = useMarvelService();
 
 
     useEffect( ()=> {
@@ -26,18 +25,14 @@ const RandomChar = () =>{
     const updateHero = () =>{
         const id = Math.floor( Math.random() * (1011400 - 1011000) + 1011000);
         getCharacter(id)
-            .then( onHeroLoaded );
+            .then( onHeroLoaded )
+            .then( () => setProcess('confirmed') );
     };
 
-    
 
-
-    const errorMessage = error ? <ErrorMessage/> : null,
-        spinner = loading ? <Spinner/> : null, 
-        content = !(loading || error) ? <View char = {character}/> : null;
     return (
         <div className="randomchar">
-            {spinner || errorMessage || content}
+            { setContent(process, View, character) }
             <div className="randomchar__static">
                 <p className="randomchar__title">
                     Random character for today!<br/>
@@ -52,13 +47,13 @@ const RandomChar = () =>{
                 <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/> 
             </div>
         </div>
-    );//return 
+    );
     
-};//RandomChar
+};
 
 
-const View = ( {char} ) => {
-    let { name, description, thumbnail, homepage, wiki} = char;
+const View = ( {data} ) => {
+    let { name, description, thumbnail, homepage, wiki} = data;
     let imgStyle;
     if( thumbnail ) imgStyle =  thumbnail.indexOf('image_not_available.jpg') !==  -1 ? { objectFit: 'fill'} : null;
     if( !description ) description = "Sorry, seems like there was not any description for that character";

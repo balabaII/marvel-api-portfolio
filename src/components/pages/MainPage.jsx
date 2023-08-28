@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useCallback} from "react"
 import { Helmet } from "react-helmet";
 
 import ErrorBoundary from "../errorBoundary/ErrorBoundary";
@@ -11,10 +11,9 @@ import decoration from '../../resources/img/vision.png';
 
 const MainPage = () =>{
     const [selectedHero, setSelectedHero] = useState(null);
-    const onHeroSelected = (id) =>{
-        setSelectedHero( id );
-    };
-
+    const onHeroSelected = useCallback( (id) => {
+        setSelectedHero( id ) 
+    },[]);
     return(
         <>
         <Helmet>

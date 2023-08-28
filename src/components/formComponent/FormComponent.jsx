@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {Formik, Form, Field, ErrorMessage as FormikErrorMessage} from 'formik';
 import * as Yup from 'yup';
 
-import useMarvelService from '../../services/MarvelService';
+import useMarvelService from '../../hooks/MarvelService';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 
 import './formComponent.scss';
@@ -11,7 +11,7 @@ import './formComponent.scss';
 
 const FormComponent = () => {
     const [character, setCharacter] = useState(null),
-        {error, clearError, getCharacterByName } = useMarvelService();
+        {clearError, getCharacterByName } = useMarvelService();
 
     
     const onCharacterFound = (newCharacter) =>{

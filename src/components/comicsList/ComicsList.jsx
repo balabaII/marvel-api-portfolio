@@ -1,11 +1,8 @@
 import { useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-
-import useMarvelService from '../../services/MarvelService';
-import Spinner from '../spinner/Spinner';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+import useMarvelService from '../../hooks/MarvelService';
+import setContentList from '../../utils/setContentList';
 
 import './comicsList.scss';
 
@@ -15,7 +12,7 @@ const ComicsList = () => {
     const [comics, setComics] = useState([]),
         [addComicsLoading, setAddComicsLoading] = useState(false),
         [offset, setOffset] = useState(500),
-        {loading, error, getAllComics} = useMarvelService();
+        {clearError, process, setProcess, getAllComics} = useMarvelService();
 
     useEffect( ()=>{
         addComics();
@@ -26,6 +23,7 @@ const ComicsList = () => {
         setAddComicsLoading(true);
         getAllComics(offset)
             .then( onComicsLoaded )
+            .then( ()=> setProcess('confirmed') )
     };
 
 
@@ -33,28 +31,21 @@ const ComicsList = () => {
         setComics(comics => [...comics, ...newComics ]);
         setOffset( offset => offset + 8 );
         setAddComicsLoading(false);
+        clearError();
     };
 
 
     const comicsList = comics.map( ( item, index ) =>{
         return (
-        <CSSTransition in={true} key={index} timeout={1000} classNames="comics__item">
-            <ListItem comics = {item}/>
-        </CSSTransition>
+            <ListItem comics = {item} key={index} />
     )});
-
-    const errorMessage = error ? <ErrorMessage/> : null,
-        spinner = loading ? <Spinner/> : null;
 
             
     return (
         <div className="comics__list">
                 <ul className="comics__grid">
-                <TransitionGroup component={null}>
-                    {comicsList}      
-                </TransitionGroup> 
+                { setContentList( process, () => comicsList, addComicsLoading) }    
                 </ul>
-            {errorMessage || spinner} 
             <button 
                 onClick={addComics} 
                 disabled={addComicsLoading} 

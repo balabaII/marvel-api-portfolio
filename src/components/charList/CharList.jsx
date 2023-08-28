@@ -1,22 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo} from 'react';
 import PropTypes from 'prop-types';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
-import useMarvelService from '../../services/MarvelService';
-
-import Spinner from '../spinner/Spinner';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+import useMarvelService from '../../hooks/MarvelService';
+import setContentList from '../../utils/setContentList';
 
 import './charList.scss';
 
-const CharList = (props) =>{
 
+
+
+
+
+const CharList = (props) =>{
     const [characters, setCharacters] = useState([]),
         [addHeroesLoading, setAddHeroesLoading] =  useState(false),
         [limit, setLimit] = useState(false),
         [offset, setOffset] = useState(210);
     
-     const {loading, error, clearError, getAllCharacters} = useMarvelService();
+     const {clearError, process, setProcess, getAllCharacters} = useMarvelService();
 
     const refList = useRef([]);
 
@@ -35,6 +36,7 @@ const CharList = (props) =>{
         initial ? setAddHeroesLoading(false) : setAddHeroesLoading(true);
         getAllCharacters(offset)
             .then( onHeroesLoaded )
+            .then( () => setProcess('confirmed') )
     };
 
     const onHeroesLoaded = async (newCharacters) =>{
@@ -45,31 +47,23 @@ const CharList = (props) =>{
         clearError();
     };
 
-
-
-
-    const  errorMessage = error ? <ErrorMessage/> : null,
-        spinner = loading  ? <Spinner/> : null;
-    const characterList = characters ? characters.map( ( {name, thumbnail, id}, index ) => {
+    const characterList = characters ?
+                    <ul className="char__grid">
+                        {characters.map(({name, thumbnail, id}, index ) => {
                         return (
-                            <CSSTransition in={true} key={id} classNames='char__item' timeout={500}>
-                                <ListItem 
-                                    onHeroSelected = {props.onHeroSelected}
-                                    onFocus = {onFocus}
-                                    refList = {refList} index = {index}
-                                    name={name}  thumbnail={thumbnail} id={id} />
-                            </CSSTransition>
-                        )}) : null ;
+                            <ListItem 
+                                key={index} 
+                                onHeroSelected = {props.onHeroSelected}
+                                onFocus = {onFocus}
+                                refList = {refList} index = {index}
+                                name={name}  thumbnail={thumbnail} id={id} />
+                                )})} 
+                    </ul> : null ;
 
 
     return (
         <div className="char__list">
-            <ul className="char__grid">
-                <TransitionGroup component={null}>
-                    {characterList}
-                </TransitionGroup>
-            </ul>
-            {spinner || errorMessage }
+            {setContentList(process, () => characterList, addHeroesLoading)}
             <button className="button button__main button__long"
                     disabled={addHeroesLoading}
                     onClick={() => addHeroes(offset)}
@@ -77,9 +71,8 @@ const CharList = (props) =>{
                 <div className="inner">load more</div>
             </button>
         </div>
-    );//return
-};//class
-
+    );
+};
 
 
 
@@ -104,6 +97,6 @@ const ListItem = (props) => {
 
 CharList.propTypes  = {
     onHeroSelected : PropTypes.func.isRequired,
-}
+};
 
-export default CharList;
+export default memo(CharList);
