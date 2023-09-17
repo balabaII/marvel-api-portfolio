@@ -16,8 +16,6 @@ const withSinglePage = (Component, dataType ) =>{
             updateData();
         }, [id] );
         
-
-        
         const onDataLoaded = (item) =>{
             setData( item );
             clearError();

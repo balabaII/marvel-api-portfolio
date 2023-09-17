@@ -30,6 +30,7 @@ const useMarvelService = () => {
 
     const getCharacterByName = async (name) =>{
         const result = await request(`${_apiBase}characters?name=${name}&${_apiKey}`);
+        console.log( result )
         return result.data.results.map( _transformDataCharacter );
     };
 
